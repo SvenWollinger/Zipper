@@ -3,6 +3,7 @@ package io.wollinger;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
@@ -20,6 +21,8 @@ public class Zipper {
     }
 
     public static void zip(File toZip, File zipLocation, ZipperUpdateListener listener) throws IOException {
+        ensureFolder(zipLocation.getParentFile());
+
         ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipLocation));
         ArrayList<File> filesToZip = getSubFiles(toZip);
         int index = 1;
@@ -41,31 +44,38 @@ public class Zipper {
         out.close();
     }
 
-    public static void unzip(File file, File extractDir) {
-        unzip(file, extractDir, StandardCopyOption.REPLACE_EXISTING, false);
-    }
-
-    public static void unzip(File file, File extractDir, StandardCopyOption copyOption, boolean printDebug) {
+    public static void unzip(File file, File extractDir, StandardCopyOption copyOption, ZipperUpdateListener listener) {
         if(!ensureFolder(extractDir))
             return;
 
         try {
             ZipFile zipFile = new ZipFile(file.getAbsolutePath());
-            Enumeration<? extends ZipEntry> entries = zipFile.entries();
-            while(entries.hasMoreElements()) {
-                ZipEntry entry = entries.nextElement();
+            ArrayList<ZipEntry> files = getSubFiles(zipFile);
+            int index = 1;
+            for(ZipEntry entry : files) {
                 File newLocation = new File(extractDir, entry.getName());
-                if(!entry.isDirectory()) {
-                    ensureFolder(new File(newLocation.getParent()));
-                    if(printDebug)
-                        System.out.printf("Extracting %s -> %s\n", entry.getName(), newLocation.getAbsolutePath());
-                    Files.copy(zipFile.getInputStream(entry), newLocation.toPath(), copyOption);
-                }
+                ensureFolder(new File(newLocation.getParent()));
+                InputStream stream = zipFile.getInputStream(entry);
+                if(listener != null)
+                    listener.update(entry.getName(), index, files.size(), stream.readAllBytes().length);
+                Files.copy(stream, newLocation.toPath(), copyOption);
+                index++;
             }
         } catch(IOException exception) {
             System.err.println("Error extracting zip file!");
             exception.printStackTrace();
         }
+    }
+
+    private static ArrayList<ZipEntry> getSubFiles(ZipFile zipFile) {
+        ArrayList<ZipEntry> files = new ArrayList<>();
+        Enumeration<? extends ZipEntry> entries = zipFile.entries();
+        while(entries.hasMoreElements()) {
+            ZipEntry entry = entries.nextElement();
+            if(!entry.isDirectory())
+                files.add(entry);
+        }
+        return files;
     }
 
     private static ArrayList<File> getSubFiles(File folder) {
@@ -91,12 +101,10 @@ public class Zipper {
             System.err.printf("Error creating folder(s) for %s!", file.getAbsolutePath());
             return false;
         }
-
         if(!file.isDirectory()) {
             System.err.printf("ensureFolder: Path %s should probably be a folder!", file.getAbsolutePath());
             return false;
         }
-
         return true;
     }
 }
