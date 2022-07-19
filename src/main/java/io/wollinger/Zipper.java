@@ -34,6 +34,9 @@ public class Zipper {
         for(File file : filesToZip) {
             String name = file.getAbsolutePath().replaceAll(Pattern.quote(toZip.getParentFile().getAbsolutePath()), "");
             byte[] fileContent = Files.readAllBytes(file.toPath());
+
+            //In my testing the "name" starts with a "/". This results in a zip file
+            //where the root folder starts with / or _. This ensures this does not happen
             if(name.charAt(0) == File.separatorChar)
                 name = name.replaceFirst(Pattern.quote(File.separator), "");
 
