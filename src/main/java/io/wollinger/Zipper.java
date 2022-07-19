@@ -19,18 +19,24 @@ public class Zipper {
         return VERSION;
     }
 
-    public static void zip(File toZip, File zipLocation) throws IOException {
+    public static void zip(File toZip, File zipLocation, ZipperUpdateListener listener) throws IOException {
         ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipLocation));
         ArrayList<File> filesToZip = getSubFiles(toZip);
+        int index = 1;
         for(File file : filesToZip) {
             String name = file.getAbsolutePath().replaceAll(Pattern.quote(toZip.getParentFile().getAbsolutePath()), "");
             byte[] fileContent = Files.readAllBytes(file.toPath());
             if(name.charAt(0) == File.separatorChar)
                 name = name.replaceFirst(Pattern.quote(File.separator), "");
+
+            if(listener != null)
+                listener.update(name, index, filesToZip.size(), fileContent.length);
+
             ZipEntry entry = new ZipEntry(name);
             out.putNextEntry(entry);
             out.write(fileContent, 0, fileContent.length);
             out.closeEntry();
+            index++;
         }
         out.close();
     }
