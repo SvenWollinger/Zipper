@@ -1,0 +1,9 @@
+/bin/
+/.classpath
+/.project
+/.idea/
+/out/
+/.gradle/
+/build/
+/release/*
+Zipper.iml
