@@ -16,10 +16,15 @@ import java.util.zip.ZipOutputStream;
 public class Zipper {
     private static final String VERSION = "0.0.1";
 
+    //Returns version
     public static String getVersion() {
         return VERSION;
     }
 
+    //Zip utility
+    //toZip -> The folder/file to zip
+    //zipLocation -> Where to zip the file to. (for example: C:\test.zip)
+    //listener -> Allows you to stay up to date with the progress
     public static void zip(File toZip, File zipLocation, ZipperUpdateListener listener) throws IOException {
         ensureFolder(zipLocation.getParentFile());
 
@@ -44,6 +49,11 @@ public class Zipper {
         out.close();
     }
 
+    //Unzip utility
+    //file -> The file to unzip
+    //extractDir -> The folder to extract to
+    //copyOption -> StandardCopyOption. Replacing for example
+    //listener -> Allows you to stay up to date with the progress
     public static void unzip(File file, File extractDir, StandardCopyOption copyOption, ZipperUpdateListener listener) {
         if(!ensureFolder(extractDir))
             return;
@@ -67,6 +77,7 @@ public class Zipper {
         }
     }
 
+    //Returns an array of files in a ZipFile. Folders are ignored
     private static ArrayList<ZipEntry> getSubFiles(ZipFile zipFile) {
         ArrayList<ZipEntry> files = new ArrayList<>();
         Enumeration<? extends ZipEntry> entries = zipFile.entries();
@@ -78,6 +89,7 @@ public class Zipper {
         return files;
     }
 
+    //Returns an array of files on disk. Folders are ignored
     private static ArrayList<File> getSubFiles(File folder) {
         ArrayList<File> files = new ArrayList<>();
 
@@ -96,6 +108,9 @@ public class Zipper {
         return files;
     }
 
+    //Utility method for making sure a given folder exists
+    //Throws error if folder can't be created or if "file" is not a folder
+    //Returns true if process was successful
     private static boolean ensureFolder(File file) {
         if(!file.exists() && !file.mkdirs()) {
             System.err.printf("Error creating folder(s) for %s!", file.getAbsolutePath());
