@@ -1,14 +1,13 @@
 package io.wollinger;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 public class ZipBuilder {
@@ -71,9 +70,8 @@ public class ZipBuilder {
 
         File initialLocation = output.remove(0);
         ArrayList<File> filesToZip = new ArrayList<>();
-        for(File inputFile : input) {
+        for(File inputFile : input)
             filesToZip.addAll(Utils.getSubFiles(inputFile));
-        }
 
         ZipOutputStream out = new ZipOutputStream(new FileOutputStream(initialLocation));
         int index = 1;
@@ -84,11 +82,12 @@ public class ZipBuilder {
             if(file.isAbsolute() && Utils.isWindows())
                 name = name.replaceFirst(Pattern.quote(":"), "_DRIVE");
 
-            byte[] fileContent = Files.readAllBytes(file.toPath());
             //In my testing the "name" starts with a "/". This results in a zip file
             //where the root folder starts with / or _. This ensures this does not happen
             if(name.charAt(0) == File.separatorChar)
                 name = name.replaceFirst(Pattern.quote(File.separator), "");
+
+            byte[] fileContent = Files.readAllBytes(file.toPath());
 
             for(ZipperUpdateListener listener : listeners)
                 if(listener != null)
@@ -110,8 +109,52 @@ public class ZipBuilder {
         output.add(initialLocation);
     }
 
-    private void _unzip() {
+    private void _unzip() throws ZipException, IOException {
+        if(input.isEmpty() || output.isEmpty())
+            throw new ZipException("Error unzipping: Input or output is not set.");
 
+        for(File o : output) {
+            Utils.ensureFolder(o);
+            if(o.isFile())
+                throw new ZipException("Error unzipping: Output should be a folder!");
+        }
+
+        File initialOutput = output.remove(0);
+
+        for(File inputFile : input) {
+            ZipFile zipFile = new ZipFile(inputFile.getAbsolutePath());
+            ArrayList<ZipEntry> files = Utils.getSubFiles(zipFile);
+            int index = 1;
+            for(ZipEntry entry : files) {
+                File newLocation = new File(initialOutput, entry.getName());
+                Utils.ensureFolder(new File(newLocation.getParent()));
+                InputStream stream = zipFile.getInputStream(entry);
+                for(ZipperUpdateListener listener : listeners)
+                    if(listener != null)
+                        listener.update(entry.getName(), index, files.size(), stream.readAllBytes().length);
+                Files.copy(stream, newLocation.toPath(), copyOption);
+                index++;
+            }
+        }
+
+        for(File o : output) {
+            Utils.ensureFolder(o);
+            Files.walk(initialOutput.toPath()).forEach(a -> {
+                if(!a.toFile().isDirectory()) {
+                    String base = a.toAbsolutePath().toString().replaceFirst(Pattern.quote(initialOutput.getAbsolutePath()), "");
+                    Path newPath = new File(o, base).toPath();
+                    Utils.ensureFolder(newPath.toFile().getParentFile());
+                    try {
+                        Files.copy(a, newPath);
+                    } catch(IOException exception) {
+                        exception.printStackTrace();
+                    }
+                }
+            });
+        }
+
+        //add initial output back in case build() is called again.
+        output.add(initialOutput);
     }
 
     private void _copy() {
