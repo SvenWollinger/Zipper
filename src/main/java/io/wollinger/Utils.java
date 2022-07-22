@@ -13,46 +13,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-public class ZipUtils {
-    private static final String VERSION = "0.0.1";
-
-    //Returns version
-    public static String getVersion() {
-        return VERSION;
-    }
-
-    //Zip utility
-    //toZip -> The folder/file to zip
-    //zipLocation -> Where to zip the file to. (for example: C:\test.zip)
-    //listener -> Allows you to stay up to date with the progress
-    public static void zip(File toZip, File zipLocation, ArrayList<ZipperUpdateListener> listeners) throws IOException {
-        ensureFolder(zipLocation.getParentFile());
-
-        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipLocation));
-        ArrayList<File> filesToZip = getSubFiles(toZip);
-        int index = 1;
-        for(File file : filesToZip) {
-            String name = file.getAbsolutePath().replaceAll(Pattern.quote(toZip.getParentFile().getAbsolutePath()), "");
-            byte[] fileContent = Files.readAllBytes(file.toPath());
-
-            //In my testing the "name" starts with a "/". This results in a zip file
-            //where the root folder starts with / or _. This ensures this does not happen
-            if(name.charAt(0) == File.separatorChar)
-                name = name.replaceFirst(Pattern.quote(File.separator), "");
-
-            for(ZipperUpdateListener listener : listeners)
-                if(listener != null)
-                    listener.update(name, index, filesToZip.size(), fileContent.length);
-
-            ZipEntry entry = new ZipEntry(name);
-            out.putNextEntry(entry);
-            out.write(fileContent, 0, fileContent.length);
-            out.closeEntry();
-            index++;
-        }
-        out.close();
-    }
-
+public class Utils {
     //Unzip utility
     //file -> The file to unzip
     //extractDir -> The folder to extract to
@@ -86,7 +47,7 @@ public class ZipUtils {
     }
 
     //Returns an array of files in a ZipFile. Folders are ignored
-    private static ArrayList<ZipEntry> getSubFiles(ZipFile zipFile) {
+    public static ArrayList<ZipEntry> getSubFiles(ZipFile zipFile) {
         ArrayList<ZipEntry> files = new ArrayList<>();
         Enumeration<? extends ZipEntry> entries = zipFile.entries();
         while(entries.hasMoreElements()) {
@@ -98,7 +59,7 @@ public class ZipUtils {
     }
 
     //Returns an array of files on disk. Folders are ignored
-    private static ArrayList<File> getSubFiles(File folder) {
+    public static ArrayList<File> getSubFiles(File folder) {
         ArrayList<File> files = new ArrayList<>();
 
         if(!folder.isDirectory()) {
@@ -119,7 +80,7 @@ public class ZipUtils {
     //Utility method for making sure a given folder exists
     //Throws error if folder can't be created or if "file" is not a folder
     //Returns true if process was successful
-    private static boolean ensureFolder(File file) {
+    public static boolean ensureFolder(File file) {
         if(!file.exists() && !file.mkdirs()) {
             System.err.printf("Error creating folder(s) for %s!", file.getAbsolutePath());
             return false;
@@ -129,5 +90,9 @@ public class ZipUtils {
             return false;
         }
         return true;
+    }
+
+    public static boolean isWindows() {
+        return System.getProperty("os.name").toLowerCase().contains("windows");
     }
 }
