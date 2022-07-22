@@ -13,7 +13,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
-public class Zipper {
+public class ZipUtils {
     private static final String VERSION = "0.0.1";
 
     //Returns version
@@ -25,7 +25,7 @@ public class Zipper {
     //toZip -> The folder/file to zip
     //zipLocation -> Where to zip the file to. (for example: C:\test.zip)
     //listener -> Allows you to stay up to date with the progress
-    public static void zip(File toZip, File zipLocation, ZipperUpdateListener listener) throws IOException {
+    public static void zip(File toZip, File zipLocation, ArrayList<ZipperUpdateListener> listeners) throws IOException {
         ensureFolder(zipLocation.getParentFile());
 
         ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipLocation));
@@ -40,8 +40,9 @@ public class Zipper {
             if(name.charAt(0) == File.separatorChar)
                 name = name.replaceFirst(Pattern.quote(File.separator), "");
 
-            if(listener != null)
-                listener.update(name, index, filesToZip.size(), fileContent.length);
+            for(ZipperUpdateListener listener : listeners)
+                if(listener != null)
+                    listener.update(name, index, filesToZip.size(), fileContent.length);
 
             ZipEntry entry = new ZipEntry(name);
             out.putNextEntry(entry);
@@ -57,9 +58,12 @@ public class Zipper {
     //extractDir -> The folder to extract to
     //copyOption -> StandardCopyOption. Replacing for example
     //listener -> Allows you to stay up to date with the progress
-    public static void unzip(File file, File extractDir, StandardCopyOption copyOption, ZipperUpdateListener listener) {
+    public static void unzip(File file, File extractDir, StandardCopyOption copyOption, ArrayList<ZipperUpdateListener> listeners) {
         if(!ensureFolder(extractDir))
             return;
+
+        if(copyOption == null)
+            copyOption = StandardCopyOption.REPLACE_EXISTING;
 
         try {
             ZipFile zipFile = new ZipFile(file.getAbsolutePath());
@@ -69,8 +73,9 @@ public class Zipper {
                 File newLocation = new File(extractDir, entry.getName());
                 ensureFolder(new File(newLocation.getParent()));
                 InputStream stream = zipFile.getInputStream(entry);
-                if(listener != null)
-                    listener.update(entry.getName(), index, files.size(), stream.readAllBytes().length);
+                for(ZipperUpdateListener listener : listeners)
+                    if(listener != null)
+                        listener.update(entry.getName(), index, files.size(), stream.readAllBytes().length);
                 Files.copy(stream, newLocation.toPath(), copyOption);
                 index++;
             }
