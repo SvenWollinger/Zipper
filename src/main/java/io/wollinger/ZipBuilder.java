@@ -101,8 +101,10 @@ public class ZipBuilder {
             index++;
         }
         out.close();
-        for(File o : output)
+        for(File o : output) {
+            Utils.ensureFolder(o.getParentFile());
             Files.copy(initialLocation.toPath(), o.toPath(), copyOption);
+        }
 
         //Add initialLocation back in case we run .build() again. Although you should not do that.
         output.add(initialLocation);
