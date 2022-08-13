@@ -7,3 +7,12 @@ group 'io.wollinger'
 repositories {
     mavenCentral()
 }
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'io.wollinger.Zipper'
+        )
+    }
+    //https://stackoverflow.com/questions/52816630/unable-to-create-a-jar-of-my-jda-project-because-of-pom-dependency
+}
