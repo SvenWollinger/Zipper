@@ -21,6 +21,7 @@ public class Zipper {
             print("-o <path>                                            - Add output file");
             print("-m <ZIP/UNZIP>                                       - Set method");
             print("-co <REPLACE_EXISTING/COPY_ATTRIBUTES/ATOMIC_MOVE>   - Set StandardCopyOption");
+            print("-log <true/false>                                    - If you want logging of whats happening");
             return;
         }
 
@@ -38,6 +39,7 @@ public class Zipper {
                     case "-o" -> priorType = "output";
                     case "-m" -> priorType = "method";
                     case "-co" -> priorType = "sco";
+                    case "-log" -> priorType = "log";
                 }
             } else {
                 switch(priorType) {
@@ -45,6 +47,11 @@ public class Zipper {
                     case "output" -> builder.addOutput(arg);
                     case "method" -> builder.setMethod(ZipMethod.valueOf(arg));
                     case "sco" -> builder.setCopyOption(StandardCopyOption.valueOf(arg));
+                    case "log" -> {
+                        if(Boolean.parseBoolean(arg)) {
+                            builder.addUpdateListener((currentFile, fileIndex, totalFiles, fileSize) -> print(String.format("[%s/%s] (%s) %s", fileIndex, totalFiles, fileSize, currentFile)));
+                        }
+                    }
                 }
                 priorType = null;
             }
