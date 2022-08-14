@@ -6,7 +6,7 @@ import java.util.Enumeration;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-public class Utils {
+class Utils {
     //Returns an array of files in a ZipFile. Folders are ignored
     public static ArrayList<ZipEntry> getSubFiles(ZipFile zipFile) {
         ArrayList<ZipEntry> files = new ArrayList<>();
