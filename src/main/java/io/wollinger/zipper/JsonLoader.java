@@ -27,6 +27,10 @@ public class JsonLoader {
         //Takes: boolean
         boolean formatOutput = Utils.getJSONBoolean(json, "formatOutput", false);
 
+        //Setting: "includeConfig"
+        //Takes: boolean
+        boolean includeConfig = Utils.getJSONBoolean(json, "includeConfig", false);
+
         log(doLog, file, "Starting...");
         log(doLog, file, "Method: %s", method);
         log(doLog, file, "Format Output: %s", formatOutput);
@@ -57,6 +61,14 @@ public class JsonLoader {
                 log(true, file, msg);
             });
         }
+
+        if(includeConfig) {
+            File zipperConfig = new File("ZipperConfig.json");
+            Files.copy(file.toPath(), zipperConfig.toPath());
+            builder.addInput(zipperConfig);
+            zipperConfig.deleteOnExit();
+        }
+
         builder.build();
     }
 
