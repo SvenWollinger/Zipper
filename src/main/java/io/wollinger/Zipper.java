@@ -1,7 +1,9 @@
 package io.wollinger;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 
 public class Zipper {
     private static final String VERSION = "0.0.1";
@@ -17,6 +19,7 @@ public class Zipper {
             print("-help                                                - Prints this");
             print("-v / -version                                        - Prints version");
             print("");
+            print("-json <path>                                         - Load a json file");
             print("-i <path>                                            - Add input file");
             print("-o <path>                                            - Add output file");
             print("-m <ZIP/UNZIP>                                       - Set method");
@@ -27,6 +30,15 @@ public class Zipper {
 
         if(args[0].equals("-v") || args[0].equals("-version")) {
             print(VERSION);
+            return;
+        }
+
+        if(args[0].equals("-json")) {
+            try {
+                JsonLoader.parse(new File(args[1]));
+            } catch (IOException | ZipException e) {
+                e.printStackTrace();
+            }
             return;
         }
 
