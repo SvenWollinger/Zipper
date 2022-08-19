@@ -8,13 +8,20 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
+import java.util.regex.Pattern;
 
 public class JsonLoader {
-    public static void parse(File file, boolean doLog) throws IOException, ZipException {
-        log(doLog, file, "Starting...");
+    public static void parse(File file) throws IOException, ZipException {
         String jsonString = new String(Files.readAllBytes(file.toPath()));
         JSONObject json = new JSONObject(jsonString);
         ZipBuilder builder = new ZipBuilder();
+
+        boolean doLog = false;
+        try {
+            doLog = json.getBoolean("log");
+        } catch(JSONException ignored) { }
+
+        log(doLog, file, "Starting...");
 
         boolean formatOutput = false;
         try {
@@ -38,7 +45,7 @@ public class JsonLoader {
 
         String method = json.getString("method");
         log(doLog, file, "Method: %s", method);
-        builder.setMethod(ZipMethod.valueOf(method));
+        builder.setMethod(ZipMethod.valueOf(method.toUpperCase()));
         if(doLog) {
             builder.addUpdateListener((currentFile, fileIndex, totalFiles, fileSize) -> {
                 String msg = String.format("[%s/%s] (%s) %s", fileIndex, totalFiles, fileSize, currentFile);
