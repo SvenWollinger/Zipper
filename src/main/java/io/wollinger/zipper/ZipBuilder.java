@@ -137,7 +137,7 @@ public class ZipBuilder {
                 InputStream stream = zipFile.getInputStream(entry);
                 for(ZipperUpdateListener listener : listeners)
                     if(listener != null)
-                        listener.update(entry.getName(), index, files.size(), stream.readAllBytes().length);
+                        listener.update(entry.getName(), index, files.size(), stream.available());
                 Files.copy(stream, newLocation.toPath(), copyOption);
                 index++;
             }
