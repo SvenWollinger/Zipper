@@ -1,4 +1,4 @@
-package io.wollinger;
+package io.wollinger.zipper;
 
 import java.io.*;
 import java.nio.file.Files;

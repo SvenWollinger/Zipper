@@ -1,9 +1,8 @@
-package io.wollinger;
+package io.wollinger.zipper;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
 
 public class Zipper {
     private static final String VERSION = "0.0.1";

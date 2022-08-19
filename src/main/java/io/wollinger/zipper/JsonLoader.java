@@ -1,4 +1,4 @@
-package io.wollinger;
+package io.wollinger.zipper;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
