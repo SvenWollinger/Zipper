@@ -22,6 +22,7 @@ public class ZipBuilder {
     private ZipMethod method;
     @Getter
     private StandardCopyOption copyOption;
+    private boolean includeLog = false;
 
     public ZipBuilder addInput(File file) {
         input.add(file);
@@ -39,6 +40,11 @@ public class ZipBuilder {
 
     public ZipBuilder addOutput(String file) {
         return addOutput(new File(file));
+    }
+
+    public ZipBuilder setIncludeLog(boolean bool) {
+        includeLog = bool;
+        return this;
     }
 
     public ZipBuilder addUpdateListener(ZipperUpdateListener listener) {
@@ -73,10 +79,20 @@ public class ZipBuilder {
         if(input.isEmpty() || output.isEmpty())
             throw new ZipException("Error zipping: Input or output is not set.");
 
+        StringBuilder log = new StringBuilder("Method: " + method + "\n");
+        log.append("Input:\n");
+        for(File inputFile : input)
+            log.append("+ ").append(inputFile).append("\n");
+        log.append("Output:\n");
+        for(File outputFile : output)
+            log.append("+ ").append(outputFile).append("\n");
+
         File initialLocation = output.remove(0);
         ArrayList<File> filesToZip = new ArrayList<>();
         for(File inputFile : input)
             filesToZip.addAll(Utils.getSubFiles(inputFile));
+
+        log.append("Starting...\n");
 
         ZipOutputStream out = new ZipOutputStream(new FileOutputStream(initialLocation));
         int index = 1;
@@ -98,12 +114,22 @@ public class ZipBuilder {
                 if(listener != null)
                     listener.update(name, index, filesToZip.size(), fileContent.length);
 
+            log.append(String.format("[%s/%s] (%s) %s\n", index, filesToZip.size(), fileContent.length, name));
+
             ZipEntry entry = new ZipEntry(name);
             out.putNextEntry(entry);
             out.write(fileContent, 0, fileContent.length);
             out.closeEntry();
             index++;
         }
+
+        if(includeLog) {
+            ZipEntry entry = new ZipEntry("ZipperLog.txt");
+            out.putNextEntry(entry);
+            out.write(log.toString().getBytes(), 0, log.toString().getBytes().length);
+            out.closeEntry();
+        }
+
         out.close();
         for(File o : output) {
             Utils.ensureFolder(o.getParentFile());

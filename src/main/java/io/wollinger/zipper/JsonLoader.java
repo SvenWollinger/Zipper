@@ -31,6 +31,10 @@ public class JsonLoader {
         //Takes: boolean
         boolean includeConfig = Utils.getJSONBoolean(json, "includeConfig", false);
 
+        //Setting: "includeLog"
+        //Takes: boolean
+        boolean includeLog = Utils.getJSONBoolean(json, "includeLog", false);
+
         log(doLog, file, "Starting...");
         log(doLog, file, "Method: %s", method);
         log(doLog, file, "Format Output: %s", formatOutput);
@@ -73,6 +77,7 @@ public class JsonLoader {
                 zipperConfig.deleteOnExit();
             }
         }
+        builder.setIncludeLog(includeLog);
 
         builder.build();
     }
