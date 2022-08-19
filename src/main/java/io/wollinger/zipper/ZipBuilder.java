@@ -66,7 +66,6 @@ public class ZipBuilder {
         switch(method) {
             case ZIP -> _zip();
             case UNZIP -> _unzip();
-            case COPY -> _copy();
         }
     }
 
@@ -161,9 +160,5 @@ public class ZipBuilder {
 
         //add initial output back in case build() is called again.
         output.add(initialOutput);
-    }
-
-    private void _copy() {
-
     }
 }
