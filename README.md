@@ -1,8 +1,45 @@
 # Zipper
 
-This library allows you to easily zip and unzip folders.
+Zipper is a utility software and library.
 
-Thats it.
+It can be used in your project to make Zipping/Unzipping easier.
+
+# Features:
+- Zip / Unzip as a library
+- Work as command line utility (run Zipper.jar -help)
+- Load .json files (described below) to automatically run zipping/unzipping
+
+# Example .json file
+
+```
+{
+    "includeConfig": true,
+    "includeLog": true,
+    "log": true,
+    "formatOutput": true,
+    "method": "ZIP",
+    "input": [
+        "D:/common/important/",
+        "D:/common/test.txt",
+        "%appdata%/.minecraft/"
+    ],
+    "output": [
+        "H:/Backups/Backup_%dd%_%mm%_%yyyy%__%hh%_%mm%_%ss%_%sss%.zip",
+        "G:/Backups/latest.zip"
+    ]
+}
+```
+Explanation:
+
+Key | Meaning
+--- | ---
+includeConfig | Include the json Config file named "ZipperConfig.json"
+includeLog | Include a log of what was done named "ZipperLog.txt"
+log | Log whats happening in the console
+formatOutput | Replace %dd%, %mm% etc with data of time and date
+method | ZIP or UNZIP
+input | List of files/folders to add to the input list
+output | List of files/folders to add to the output list
 
 # License
 
