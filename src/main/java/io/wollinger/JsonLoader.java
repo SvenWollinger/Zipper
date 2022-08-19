@@ -32,6 +32,7 @@ public class JsonLoader {
         JSONArray input = json.getJSONArray("input");
         for(int i = 0; i < input.length(); i++) {
             String inputString = input.getString(i);
+            inputString = formatEnv(inputString);
             log(doLog, file, "Input += %s", inputString);
             builder.addInput(inputString);
         }
@@ -39,6 +40,7 @@ public class JsonLoader {
         JSONArray output = json.getJSONArray("output");
         for(int i = 0; i < output.length(); i++) {
             String outputString = output.getString(i);
+            outputString = formatEnv(outputString);
             log(doLog, file, "Output += %s", outputString);
             builder.addOutput(formatOutput ? format(outputString) : outputString);
         }
@@ -63,6 +65,21 @@ public class JsonLoader {
     private static String fZ(int i) {
         if(i > 9) return Integer.toString(i);
         return "0" + i;
+    }
+
+    private static String formatEnv(String string) {
+        string = formatEnvSingle(string, "appdata");
+        string = formatEnvSingle(string, "localappdata");
+        string = formatEnvSingle(string, "userprofile");
+        string = formatEnvSingle(string, "programdata");
+        return string;
+    }
+
+    private static String formatEnvSingle(String string, String var) {
+        String winVer = "%" + var + "%";
+        if(string.toLowerCase().contains(winVer))
+            string = string.replaceAll(Pattern.quote(winVer), System.getenv(var).replaceAll("\\\\", "/"));
+        return string;
     }
 
     private static String format(String string) {
