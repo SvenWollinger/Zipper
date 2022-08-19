@@ -1,5 +1,7 @@
 package io.wollinger.zipper;
 
+import lombok.Getter;
+
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,10 +13,14 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 public class ZipBuilder {
+    @Getter
     private final ArrayList<File> input = new ArrayList<>();
+    @Getter
     private final ArrayList<File> output = new ArrayList<>();
     private final ArrayList<ZipperUpdateListener> listeners = new ArrayList<>();
+    @Getter
     private ZipMethod method;
+    @Getter
     private StandardCopyOption copyOption;
 
     public ZipBuilder addInput(File file) {
