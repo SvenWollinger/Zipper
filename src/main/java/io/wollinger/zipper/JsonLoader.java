@@ -63,10 +63,15 @@ public class JsonLoader {
         }
 
         if(includeConfig) {
-            File zipperConfig = new File("ZipperConfig.json");
-            Files.copy(file.toPath(), zipperConfig.toPath());
-            builder.addInput(zipperConfig);
-            zipperConfig.deleteOnExit();
+            //ZIP only feature.
+            //While UNZIP works with json files, i cant imagine a scenario where i would want the config to be included in the unzip
+            //Might add if a need arises
+            if(builder.getMethod() == ZipMethod.ZIP) {
+                File zipperConfig = new File("ZipperConfig.json");
+                Files.copy(file.toPath(), zipperConfig.toPath());
+                builder.addInput(zipperConfig);
+                zipperConfig.deleteOnExit();
+            }
         }
 
         builder.build();
