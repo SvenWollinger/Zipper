@@ -43,6 +43,7 @@ public class Zipper {
 
         ZipBuilder builder = new ZipBuilder();
         String priorType = null;
+        boolean log = false;
         for(String arg : args) {
             if(priorType == null) {
                 switch(arg) {
@@ -59,6 +60,7 @@ public class Zipper {
                     case "method" -> builder.setMethod(ZipMethod.valueOf(arg));
                     case "sco" -> builder.setCopyOption(StandardCopyOption.valueOf(arg));
                     case "log" -> {
+                        log = true;
                         if(Boolean.parseBoolean(arg)) {
                             builder.addUpdateListener((currentFile, fileIndex, totalFiles, fileSize) -> print(String.format("[%s/%s] (%s) %s", fileIndex, totalFiles, fileSize, currentFile)));
                         }
@@ -67,6 +69,18 @@ public class Zipper {
                 priorType = null;
             }
         }
+
+        if(log) {
+            print("Method: " + builder.getMethod());
+            if(builder.getCopyOption() != null)
+                print("StandardCopyOption: " + builder.getCopyOption());
+            for(File input : builder.getInput())
+                print("Input += " + input.getAbsolutePath());
+
+            for(File output : builder.getOutput())
+                print("Output += " + output.getAbsolutePath());
+        }
+
         try {
             builder.build();
         } catch (ZipException | IOException e) {
