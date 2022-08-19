@@ -13,16 +13,17 @@ import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 public class ZipBuilder {
+    private final ArrayList<ZipperUpdateListener> listeners = new ArrayList<>();
+    private boolean includeLog = false;
+
     @Getter
     private final ArrayList<File> input = new ArrayList<>();
     @Getter
     private final ArrayList<File> output = new ArrayList<>();
-    private final ArrayList<ZipperUpdateListener> listeners = new ArrayList<>();
     @Getter
     private ZipMethod method;
     @Getter
     private StandardCopyOption copyOption;
-    private boolean includeLog = false;
 
     public ZipBuilder addInput(File file) {
         input.add(file);
