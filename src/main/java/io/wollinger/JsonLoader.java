@@ -1,14 +1,12 @@
 package io.wollinger;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.LocalDateTime;
-import java.util.regex.Pattern;
 
 public class JsonLoader {
     public static void parse(File file) throws IOException, ZipException {
@@ -16,23 +14,17 @@ public class JsonLoader {
         JSONObject json = new JSONObject(jsonString);
         ZipBuilder builder = new ZipBuilder();
 
-        boolean doLog = false;
-        try {
-            doLog = json.getBoolean("log");
-        } catch(JSONException ignored) { }
+        boolean doLog = Utils.getJSONBoolean(json, "log", false);
 
         log(doLog, file, "Starting...");
 
-        boolean formatOutput = false;
-        try {
-            formatOutput = json.getBoolean("formatOutput");
-        } catch(JSONException ignored) { }
+        boolean formatOutput = Utils.getJSONBoolean(json, "formatOutput", false);
         log(doLog, file, "Format Output: %s", formatOutput);
 
         JSONArray input = json.getJSONArray("input");
         for(int i = 0; i < input.length(); i++) {
             String inputString = input.getString(i);
-            inputString = formatEnv(inputString);
+            inputString = Utils.formatEnv(inputString);
             log(doLog, file, "Input += %s", inputString);
             builder.addInput(inputString);
         }
@@ -40,7 +32,7 @@ public class JsonLoader {
         JSONArray output = json.getJSONArray("output");
         for(int i = 0; i < output.length(); i++) {
             String outputString = output.getString(i);
-            outputString = formatEnv(outputString);
+            outputString = Utils.formatEnv(outputString);
             log(doLog, file, "Output += %s", outputString);
             builder.addOutput(formatOutput ? format(outputString) : outputString);
         }
@@ -65,21 +57,6 @@ public class JsonLoader {
     private static String fZ(int i) {
         if(i > 9) return Integer.toString(i);
         return "0" + i;
-    }
-
-    private static String formatEnv(String string) {
-        string = formatEnvSingle(string, "appdata");
-        string = formatEnvSingle(string, "localappdata");
-        string = formatEnvSingle(string, "userprofile");
-        string = formatEnvSingle(string, "programdata");
-        return string;
-    }
-
-    private static String formatEnvSingle(String string, String var) {
-        String winVer = "%" + var + "%";
-        if(string.toLowerCase().contains(winVer))
-            string = string.replaceAll(Pattern.quote(winVer), System.getenv(var).replaceAll("\\\\", "/"));
-        return string;
     }
 
     private static String format(String string) {

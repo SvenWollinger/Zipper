@@ -1,8 +1,12 @@
 package io.wollinger;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -59,5 +63,28 @@ class Utils {
         if(osName == null)
             osName = System.getProperty("os.name").toLowerCase();
         return osName.contains("windows");
+    }
+
+    public static String formatEnv(String string) {
+        string = formatEnvSingle(string, "appdata");
+        string = formatEnvSingle(string, "localappdata");
+        string = formatEnvSingle(string, "userprofile");
+        string = formatEnvSingle(string, "programdata");
+        return string;
+    }
+
+    private static String formatEnvSingle(String string, String var) {
+        String winVer = "%" + var + "%";
+        if(string.toLowerCase().contains(winVer))
+            string = string.replaceAll(Pattern.quote(winVer), System.getenv(var).replaceAll("\\\\", "/"));
+        return string;
+    }
+
+    public static boolean getJSONBoolean(JSONObject json, String key, boolean defaultValue) {
+        try {
+            return json.getBoolean(key);
+        } catch (JSONException exception) {
+            return defaultValue;
+        }
     }
 }
