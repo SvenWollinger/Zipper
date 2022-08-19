@@ -14,13 +14,25 @@ public class JsonLoader {
         JSONObject json = new JSONObject(jsonString);
         ZipBuilder builder = new ZipBuilder();
 
+        //Setting: "method"
+        //Takes: String to ZipMethod Enum
+        String method = json.getString("method");
+        builder.setMethod(ZipMethod.valueOf(method.toUpperCase()));
+
+        //Setting: "log"
+        //Takes: boolean
         boolean doLog = Utils.getJSONBoolean(json, "log", false);
 
-        log(doLog, file, "Starting...");
-
+        //Setting: "formatOutput"
+        //Takes: boolean
         boolean formatOutput = Utils.getJSONBoolean(json, "formatOutput", false);
+
+        log(doLog, file, "Starting...");
+        log(doLog, file, "Method: %s", method);
         log(doLog, file, "Format Output: %s", formatOutput);
 
+        //Setting: "input"
+        //Takes: String array
         JSONArray input = json.getJSONArray("input");
         for(int i = 0; i < input.length(); i++) {
             String inputString = input.getString(i);
@@ -29,6 +41,8 @@ public class JsonLoader {
             builder.addInput(inputString);
         }
 
+        //Setting: "output"
+        //Takes: String array
         JSONArray output = json.getJSONArray("output");
         for(int i = 0; i < output.length(); i++) {
             String outputString = output.getString(i);
@@ -37,9 +51,6 @@ public class JsonLoader {
             builder.addOutput(formatOutput ? format(outputString) : outputString);
         }
 
-        String method = json.getString("method");
-        log(doLog, file, "Method: %s", method);
-        builder.setMethod(ZipMethod.valueOf(method.toUpperCase()));
         if(doLog) {
             builder.addUpdateListener((currentFile, fileIndex, totalFiles, fileSize) -> {
                 String msg = String.format("[%s/%s] (%s) %s", fileIndex, totalFiles, fileSize, currentFile);
