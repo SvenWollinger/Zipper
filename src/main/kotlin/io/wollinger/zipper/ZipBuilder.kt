@@ -17,8 +17,11 @@ class ZipBuilder {
     private val input = ArrayList<File>()
     private val output = ArrayList<File>()
 
-    private var method : ZipMethod? = null
-    private var copyOption = StandardCopyOption.REPLACE_EXISTING
+    var method : ZipMethod? = null
+    private set(value) { field = value }
+
+    var copyOption = StandardCopyOption.REPLACE_EXISTING
+    private set(value) { field = value }
 
     fun addInput(file: File): ZipBuilder {
         input.add(file)
@@ -56,6 +59,14 @@ class ZipBuilder {
     fun setCopyOption(option: StandardCopyOption): ZipBuilder {
         this.copyOption = option
         return this
+    }
+
+    fun getInputFiles(): ArrayList<File> {
+        return input
+    }
+
+    fun getOutputFiles(): ArrayList<File> {
+        return output
     }
 
     fun build() {
