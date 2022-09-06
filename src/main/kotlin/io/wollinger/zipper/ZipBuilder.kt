@@ -13,15 +13,12 @@ import java.util.zip.ZipOutputStream
 class ZipBuilder {
     private val listeners = ArrayList<ZipperUpdateListener>()
     private var includeLog = false
-
     private val input = ArrayList<File>()
     private val output = ArrayList<File>()
-
     var method : ZipMethod? = null
-    private set
-
+        private set
     var copyOption = StandardCopyOption.REPLACE_EXISTING
-    private set
+        private set
 
     fun addInput(file: File): ZipBuilder {
         input.add(file)
