@@ -7,6 +7,7 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.util.zip.ZipEntry
 import java.util.zip.ZipException
+import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 class ZipBuilder {
@@ -69,7 +70,7 @@ class ZipBuilder {
 
     private fun zip() {
         if(input.isEmpty() || output.isEmpty())
-            throw ZipException("Error zipping: Input or output is not set.");
+            throw ZipException("Error zipping: Input or output is not set.")
 
         val log = StringBuilder("Method: $method\n")
         log.append("Input:\n")
@@ -129,11 +130,50 @@ class ZipBuilder {
         }
 
         //Add initialLocation back in case we run .build() again. Although you should not do that.
-        output.add(initialLocation);
+        output.add(initialLocation)
     }
 
     private fun unzip() {
+        if(input.isEmpty() || output.isEmpty())
+            throw ZipException("Error unzipping: Input or output is not set.")
 
+        for(o in output) {
+            if(o.isFile)
+                throw ZipException("Error unzipping: Output should be a folder!")
+            Utils.ensureFolder(o)
+        }
+
+        val initialOutput = output.removeAt(0)
+
+        for(inputFile in input) {
+            val zipFile = ZipFile(inputFile.absolutePath)
+            val files = Utils.getSubFiles(zipFile)
+            var index = 1
+            for(entry in files) {
+                val newLocation = File(initialOutput, entry.name)
+                Utils.ensureFolder(File(newLocation.parent))
+                val stream = zipFile.getInputStream(entry)
+                for(listener in listeners)
+                    listener.update(entry.name, index, files.size, stream.available())
+                Files.copy(stream, newLocation.toPath(), copyOption)
+                index++
+            }
+        }
+
+        for(o in output) {
+            Utils.ensureFolder(o)
+            Files.walk(initialOutput.toPath()).forEach {
+                if(!it.toFile().isDirectory) {
+                    val base = it.toAbsolutePath().toString().replaceFirst(initialOutput.absolutePath, "")
+                    val newPath = File(o, base).toPath()
+                    Utils.ensureFolder(newPath.toFile().parentFile)
+                    Files.copy(it, newPath)
+                }
+            }
+        }
+
+        //add initial output back in case build() is called again.
+        output.add(initialOutput)
     }
 }
 
