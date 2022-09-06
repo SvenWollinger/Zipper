@@ -38,7 +38,7 @@ class ZipBuilder {
     }
 
     fun addOutput(file: String): ZipBuilder {
-        return addOutput(file)
+        return addOutput(File(file))
     }
 
     fun setIncludeLog(bool: Boolean): ZipBuilder {
