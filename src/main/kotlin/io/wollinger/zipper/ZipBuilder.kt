@@ -18,10 +18,10 @@ class ZipBuilder {
     private val output = ArrayList<File>()
 
     var method : ZipMethod? = null
-    private set(value) { field = value }
+    private set
 
     var copyOption = StandardCopyOption.REPLACE_EXISTING
-    private set(value) { field = value }
+    private set
 
     fun addInput(file: File): ZipBuilder {
         input.add(file)
