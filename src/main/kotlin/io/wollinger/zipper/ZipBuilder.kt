@@ -10,36 +10,38 @@ import java.util.zip.ZipException
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
-class ZipBuilder {
-    private val listeners = ArrayList<ZipperUpdateListener>()
-    private var includeLog = false
-    private val input = ArrayList<File>()
-    private val output = ArrayList<File>()
-    var method : ZipMethod? = null
-        private set
+class Settings {
     var copyOption = StandardCopyOption.REPLACE_EXISTING
-        private set
+    var includeConfig = false
+    var includeLog = false
+    var log = false
+    var formatOutput = false
+    var method: ZipMethod? = null
+    var input = ArrayList<String>()
+    var output = ArrayList<String>()
+}
 
-    fun addInput(file: File): ZipBuilder {
-        input.add(file)
-        return this
-    }
+enum class ZipMethod { ZIP, UNZIP }
+
+class ZipBuilder(private val settings: Settings = Settings()) {
+    private val listeners = ArrayList<ZipperUpdateListener>()
 
     fun addInput(file: String): ZipBuilder {
-        return addInput(File(file))
-    }
-
-    fun addOutput(file: File): ZipBuilder {
-        output.add(file)
+        settings.input.add(file)
         return this
     }
 
+    fun addInput(file: File): ZipBuilder = addInput(file.absolutePath)
+
     fun addOutput(file: String): ZipBuilder {
-        return addOutput(File(file))
+        settings.output.add(file)
+        return this
     }
 
+    fun addOutput(file: File): ZipBuilder = addOutput(file.absolutePath)
+
     fun setIncludeLog(bool: Boolean): ZipBuilder {
-        includeLog = bool
+        settings.includeLog = bool
         return this
     }
 
@@ -49,38 +51,53 @@ class ZipBuilder {
     }
 
     fun setMethod(method: ZipMethod): ZipBuilder {
-        this.method = method
+        settings.method = method
         return this
     }
+
+    fun getMethod(): ZipMethod? = settings.method
 
     fun setCopyOption(option: StandardCopyOption): ZipBuilder {
-        this.copyOption = option
+        settings.copyOption = option
         return this
     }
 
+    fun getCopyOption(): StandardCopyOption = settings.copyOption
+
     fun getInputFiles(): ArrayList<File> {
-        return input
+        val result = ArrayList<File>()
+        settings.input.forEach { result.add(File(Utils.formatEnv(it))) }
+        return result
     }
 
     fun getOutputFiles(): ArrayList<File> {
-        return output
+        val result = ArrayList<File>()
+        settings.output.forEach {
+            var path = Utils.formatEnv(it)
+            path = if(settings.formatOutput) Utils.formatTime(path) else path
+            result.add(File(path))
+        }
+        return result
     }
 
     fun build() {
-        if(method == null)
+        if(settings.method == null)
             throw ZipException("Method is not set.")
 
-        when(method) {
+        when(settings.method) {
             ZipMethod.ZIP -> zip()
             ZipMethod.UNZIP -> unzip()
         }
     }
 
     private fun zip() {
+        val input = getInputFiles()
+        val output = getOutputFiles()
+
         if(input.isEmpty() || output.isEmpty())
             throw ZipException("Error zipping: Input or output is not set.")
 
-        val log = StringBuilder("Method: $method\n")
+        val log = StringBuilder("Method: ${settings.method}\n")
         log.append("Input:\n")
         for(inputFile in input)
             log.append("+ $inputFile\n")
@@ -123,7 +140,7 @@ class ZipBuilder {
             index++
         }
 
-        if(includeLog) {
+        if(settings.includeLog) {
             val logEntry = ZipEntry("ZipperLog.txt")
             out.putNextEntry(logEntry)
             val bytes = log.toString().toByteArray(Charset.defaultCharset())
@@ -134,7 +151,7 @@ class ZipBuilder {
 
         for(o in output) {
             Utils.ensureFolder(o.parentFile)
-            Files.copy(initialLocation.toPath(), o.toPath(), copyOption)
+            Files.copy(initialLocation.toPath(), o.toPath(), settings.copyOption)
         }
 
         //Add initialLocation back in case we run .build() again. Although you should not do that.
@@ -142,6 +159,9 @@ class ZipBuilder {
     }
 
     private fun unzip() {
+        val input = getInputFiles()
+        val output = getOutputFiles()
+
         if(input.isEmpty() || output.isEmpty())
             throw ZipException("Error unzipping: Input or output is not set.")
 
@@ -153,8 +173,8 @@ class ZipBuilder {
 
         val initialOutput = output.removeAt(0)
 
-        for(inputFile in input) {
-            val zipFile = ZipFile(inputFile.absolutePath)
+        for(inputFile in settings.input) {
+            val zipFile = ZipFile(File(inputFile).absolutePath)
             val files = Utils.getSubFiles(zipFile)
             var index = 1
             for(entry in files) {
@@ -163,7 +183,7 @@ class ZipBuilder {
                 val stream = zipFile.getInputStream(entry)
                 for(listener in listeners)
                     listener.update(entry.name, index, files.size, stream.available())
-                Files.copy(stream, newLocation.toPath(), copyOption)
+                Files.copy(stream, newLocation.toPath(), settings.copyOption)
                 index++
             }
         }
@@ -183,10 +203,6 @@ class ZipBuilder {
         //add initial output back in case build() is called again.
         output.add(initialOutput)
     }
-}
-
-enum class ZipMethod {
-    ZIP, UNZIP
 }
 
 interface ZipperUpdateListener {

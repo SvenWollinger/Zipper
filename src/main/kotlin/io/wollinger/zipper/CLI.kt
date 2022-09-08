@@ -68,8 +68,8 @@ object CLI {
         }
 
         if(log) {
-            println("Method: ${builder.method}")
-            println("StandardCopyOption: ${builder.copyOption}")
+            println("Method: ${builder.getMethod()}")
+            println("StandardCopyOption: ${builder.getCopyOption()}")
             for(input in builder.getInputFiles())
                 println("Input += $input")
             for(output in builder.getOutputFiles())
