@@ -1,59 +1,43 @@
 package io.wollinger.zipper
 
-import org.json.JSONObject
+import com.fasterxml.jackson.databind.ObjectMapper
 import java.io.File
 import java.nio.file.Files
 import java.time.LocalDateTime
 
+class Settings {
+    var includeConfig: Boolean = false
+    var includeLog: Boolean = false
+    var log: Boolean = false
+    var formatOutput: Boolean = false
+    var method: ZipMethod? = null
+    var input = ArrayList<String>()
+    var output = ArrayList<String>()
+}
+
 object JsonLoader {
     fun parse(file: File) {
-        val jsonString = String(Files.readAllBytes(file.toPath()))
-        val json = JSONObject(jsonString)
+        val settings = ObjectMapper().readValue(file, Settings::class.java)
         val builder = ZipBuilder()
 
-        //Setting: "method"
-        //Takes: String to ZipMethod Enum
-        val method = json.getString("method")
-        builder.setMethod(ZipMethod.valueOf(method.uppercase()))
-
-        //Setting: "log"
-        //Takes: boolean
-        val doLog = Utils.getJSONBoolean(json, "log", false)
-
-        //Setting: "formatOutput"
-        //Takes: boolean
-        val formatOutput = Utils.getJSONBoolean(json, "formatOutput", false)
-
-        //Setting: "includeConfig"
-        //Takes: boolean
-        val includeConfig = Utils.getJSONBoolean(json, "includeConfig", false)
-
-        //Setting: "includeLog"
-        //Takes: boolean
-        val includeLog = Utils.getJSONBoolean(json, "includeLog", false)
-
+        val doLog = settings.log
         log(doLog, file, "Starting...")
-        log(doLog, file, "Method: $method")
-        log(doLog, file, "Format Output: $formatOutput")
+        log(doLog, file, "Method: ${settings.method}")
+        log(doLog, file, "Format Output: ${settings.formatOutput}")
 
-        //Setting: "input"
-        //Takes: String array
-        val input = json.getJSONArray("input")
-        for(i in 0 until input.length()) {
-            val inputString = Utils.formatEnv(input.getString(i))
+        builder.setIncludeLog(settings.includeLog)
+        settings.input.forEach {
+            val inputString = Utils.formatEnv(it)
             log(doLog, file, "Input += $inputString")
             builder.addInput(inputString)
         }
-
-        //Setting: "output"
-        //Takes: String array
-        val output = json.getJSONArray("output")
-        for(i in 0 until output.length()) {
-            var outputString = Utils.formatEnv(output.getString(i))
-            outputString = if(formatOutput) format(outputString) else outputString
+        settings.output.forEach {
+            var outputString = Utils.formatEnv(it)
+            outputString = if(settings.formatOutput) format(outputString) else outputString
             log(doLog, file, "Output += $outputString")
             builder.addOutput(outputString)
         }
+        settings.method?.let { builder.setMethod(it) }
 
         if(doLog) {
             builder.addUpdateListener(object: ZipperUpdateListener{
@@ -63,7 +47,7 @@ object JsonLoader {
             })
         }
 
-        if(includeConfig) {
+        if(settings.includeConfig) {
             //ZIP only feature.
             //While UNZIP works with json files, i cant imagine a scenario where i would want the config to be included in the unzip
             //Might add if a need arises
@@ -74,7 +58,6 @@ object JsonLoader {
                 zipperConfig.deleteOnExit()
             }
         }
-        builder.setIncludeLog(includeLog)
         builder.build()
     }
 

@@ -1,7 +1,5 @@
 package io.wollinger.zipper
 
-import org.json.JSONException
-import org.json.JSONObject
 import java.io.File
 import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
@@ -62,19 +60,11 @@ object Utils {
         return result
     }
 
-    fun formatEnvSingle(string: String, varr: String): String {
+    private fun formatEnvSingle(string: String, varr: String): String {
         val winVer = "%$varr%"
         var result = string
         if(result.lowercase().contains(winVer))
             result = result.replace(winVer, System.getenv(varr).replace("\\\\", "/"))
         return result
-    }
-
-    fun getJSONBoolean(json: JSONObject, key: String, defaultValue: Boolean): Boolean {
-        return try {
-            json.getBoolean(key)
-        } catch (exception: JSONException) {
-            return defaultValue
-        }
     }
 }
