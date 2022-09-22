@@ -87,6 +87,7 @@ class ZipBuilder(private val settings: Settings = Settings()) {
         when(settings.method) {
             ZipMethod.ZIP -> zip()
             ZipMethod.UNZIP -> unzip()
+            else -> println("${settings.method} not valid/available!")
         }
     }
 
