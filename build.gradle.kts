@@ -15,10 +15,6 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-databind:2.13.4")
 }
 
-tasks.test {
-    useJUnit()
-}
-
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
@@ -26,9 +22,7 @@ tasks.withType<KotlinCompile> {
 tasks.withType<Jar> {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
-    manifest {
-        attributes["Main-Class"] = "io.wollinger.zipper.MainKt"
-    }
+    manifest { attributes["Main-Class"] = "io.wollinger.zipper.MainKt" }
 
     dependsOn(configurations.runtimeClasspath)
     from({
