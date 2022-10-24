@@ -1,5 +1,7 @@
 # Zipper
 
+## ARCHIVED! I now use [Zip4J](https://github.com/srikanth-lingala/zip4j) for my zipping needs + [ZipMeUp](https://github.com/SvenWollinger/ZipMeUp) for my automatic json backups
+
 Zipper is a utility software and library.
 
 It can be used in your project to make Zipping/Unzipping easier.
