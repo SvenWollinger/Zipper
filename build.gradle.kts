@@ -21,7 +21,13 @@ tasks.withType<KotlinCompile> {
 
 sourceSets {
     create("api")
-    create("cli")
+    create("cli") {
+        compileClasspath = sourceSets.main.get().compileClasspath
+        runtimeClasspath = sourceSets.main.get().runtimeClasspath
+        dependencies {
+            implementation(sourceSets["api"].output)
+        }
+    }
 }
 
 tasks.create("api", Jar::class) {
