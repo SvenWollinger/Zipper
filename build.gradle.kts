@@ -19,14 +19,30 @@ tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
 
-tasks.withType<Jar> {
+sourceSets {
+    create("api")
+    create("cli")
+}
+
+tasks.create("api", Jar::class) {
+    this.group = "Zipper"
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    dependsOn(configurations.runtimeClasspath)
+    from(sourceSets["api"].output)
+    archiveBaseName.set("ZipperAPI.jar")
+}
+
+tasks.create("cli", Jar::class) {
+    this.group = "Zipper"
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    archiveBaseName.set("ZipperCLI.jar")
 
     manifest { attributes["Main-Class"] = "io.wollinger.zipper.MainKt" }
 
     dependsOn(configurations.runtimeClasspath)
+    from(sourceSets["api"].output)
+    from(sourceSets["cli"].output)
     from({
-        sourceSets.main.get().output
         configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
     })
 }
